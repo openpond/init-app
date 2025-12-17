@@ -11,7 +11,8 @@
   "dependencies": {
     "@msgpack/msgpack": "^3.0.0",
     "@noble/hashes": "^1.5.0",
-    "opentool": "github:openpond/opentool#feat/add-spot-hype"
+    "opentool": "github:openpond/opentool#feat/add-spot-hype",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
