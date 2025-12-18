@@ -34,6 +34,15 @@ export async function POST(req: Request): Promise<Response> {
     const chainConfig = resolveChainConfig(environment);
     const context = await wallet({
       chain: chainConfig.chain,
+      apiKey: process.env.ALCHEMY_API_KEY,
+      rpcUrl: chainConfig.rpcUrl ?? process.env.RPC_URL,
+      turnkey: {
+        organizationId: process.env.TURNKEY_SUBORG_ID!,
+        apiPublicKey: process.env.TURNKEY_API_PUBLIC_KEY!,
+        apiPrivateKey: process.env.TURNKEY_API_PRIVATE_KEY!,
+        signWith: process.env.TURNKEY_WALLET_ADDRESS!,
+        apiBaseUrl: process.env.TURNKEY_API_BASE_URL,
+      },
     });
 
     const walletAddress = context.address;
@@ -67,15 +76,19 @@ export async function POST(req: Request): Promise<Response> {
       result,
     });
   } catch (error) {
-    const message =
-      error instanceof HyperliquidApiError
-        ? error.message
-        : error instanceof Error
-        ? error.message
-        : "Unknown error";
-    return new Response(JSON.stringify({ ok: false, error: message }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
+    const err = error as { message?: unknown; response?: unknown; cause?: unknown };
+    const message = typeof err?.message === "string" ? err.message : "Unknown error";
+    const exchangeResponse =
+      err?.response ?? (error instanceof HyperliquidApiError ? error.response : null);
+
+    return Response.json(
+      {
+        ok: false,
+        error: message,
+        exchangeResponse,
+        debug: "portfolio-margin@v2",
+      },
+      { status: 400 }
+    );
   }
 }
